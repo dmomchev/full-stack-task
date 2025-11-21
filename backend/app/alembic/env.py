@@ -30,8 +30,8 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 from app.core.db import Base # noqa
 from app.core.config import settings # noqa
-from app.models.user import User
-from app.models.role import Role, Permission
+# import sql models
+from app.models.user import User, Role, Permission
 from app.models.car import Brand, Model, Submodel, Generation, CarSpec
 
 target_metadata = Base.metadata
