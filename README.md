@@ -47,7 +47,24 @@ Entity (Models) → Repository → Service → Controller (API Routes)
 git clone https://github.com/dmomchev/full-stack-task.git
 
 ```
+### 2. Create environment file
+```bash
+cp .env.example .env
+```
 
+Edit `.env` with your settings:
+```env
+POSTGRES_SERVER=localhost
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=cardb
+```
+
+### 3. Start services with Docker Compose
+```bash
+# From project root
+docker-compose up --build
+```
 ## User Roles & Permissions
 
 ### Admin
