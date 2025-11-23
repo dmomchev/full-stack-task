@@ -1,8 +1,8 @@
-"""Init tables
+"""Init Tables
 
-Revision ID: ed9bd5ce00d5
+Revision ID: 2adb982121b0
 Revises: 
-Create Date: 2025-11-22 00:29:32.863652
+Create Date: 2025-11-23 09:32:26.628885
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'ed9bd5ce00d5'
+revision: str = '2adb982121b0'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -43,12 +43,12 @@ def upgrade() -> None:
     )
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('email', sa.String(length=255), nullable=False),
+    sa.Column('username', sa.String(length=255), nullable=False),
     sa.Column('hashed_password', sa.String(length=255), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=True),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('email')
+    sa.UniqueConstraint('username')
     )
     op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
     op.create_table('models',
@@ -57,6 +57,20 @@ def upgrade() -> None:
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.ForeignKeyConstraint(['brand_id'], ['brands.id'], ),
     sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('role_permissions',
+    sa.Column('role_id', sa.Integer(), nullable=False),
+    sa.Column('permission_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['permission_id'], ['permissions.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['role_id'], ['roles.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('role_id', 'permission_id')
+    )
+    op.create_table('user_roles',
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('role_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['role_id'], ['roles.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('user_id', 'role_id')
     )
     op.create_table('submodels',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -96,6 +110,8 @@ def downgrade() -> None:
     op.drop_table('car_specs')
     op.drop_table('generations')
     op.drop_table('submodels')
+    op.drop_table('user_roles')
+    op.drop_table('role_permissions')
     op.drop_table('models')
     op.drop_index(op.f('ix_users_id'), table_name='users')
     op.drop_table('users')

@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from app.core.db import Base
 
+
 class Brand(Base):
     __tablename__ = "brands"
 

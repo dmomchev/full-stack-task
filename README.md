@@ -45,7 +45,7 @@ Entity (Models) → Repository → Service → Controller (API Routes)
 ### 1. Clone the repository
 ```bash
 git clone https://github.com/dmomchev/full-stack-task.git
-
+cd full-stack-task
 ```
 ### 2. Create environment file
 ```bash
