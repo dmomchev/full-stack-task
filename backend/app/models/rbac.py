@@ -28,13 +28,7 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(TIMESTAMP, server_default=func.now())
-    
-    roles = relationship(
-        "Role",
-        secondary=user_roles_table,
-        back_populates="users",  # Refers to the 'users' property on the Role class
-        lazy="selectin",
-    )
+    roles = relationship("Role", secondary=user_roles_table, back_populates="users", lazy="selectin")
 
 
 class Role(Base):
@@ -43,20 +37,8 @@ class Role(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(50), unique=True, nullable=False)
     description = Column(String(255))
-    
-    users = relationship( 
-        "User",
-        secondary=user_roles_table,
-        back_populates="roles",  # Refers to the 'roles' property on the User class
-        lazy="selectin",
-    )
-
-    permissions = relationship(
-        "Permission",
-        secondary=role_permissions_table,
-        back_populates="roles",
-        lazy="selectin",
-    )
+    users = relationship("User", secondary=user_roles_table, back_populates="roles", lazy="selectin")
+    permissions = relationship("Permission", secondary=role_permissions_table, back_populates="roles", lazy="selectin")
 
 
 class Permission(Base):
@@ -65,10 +47,4 @@ class Permission(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(100), unique=True, nullable=False)
     description = Column(String(255))
-
-    roles = relationship(
-        "Role",
-        secondary=role_permissions_table,
-        back_populates="permissions",
-        lazy="selectin"
-    )
+    roles = relationship("Role", secondary=role_permissions_table, back_populates="permissions", lazy="selectin")
