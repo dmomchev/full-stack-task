@@ -3,6 +3,13 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
 
+    #JWT
+    SECRET_KEY: str = "replace_with_secure_secret"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    
+    ADMIN_PASSWORD: str = "admin123"
+
     # Postgres
     # DATABASE_URL: str = "postgresql+asyncpg://user:password@localhost:5432/mydb"
     POSTGRES_USER: str = "postgres"
