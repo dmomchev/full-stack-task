@@ -11,7 +11,7 @@ from app.schemas.auth import TokenPayload
 from app.models.rbac import User
 
 
-bearer_scheme = HTTPBearer(auto_error=False)
+bearer_scheme = HTTPBearer(description="Enter your access token", auto_error=False)
 
 
 async def get_db() -> AsyncSession:
