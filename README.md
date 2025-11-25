@@ -41,6 +41,10 @@ docker-compose up --build
 Access the frontend at http://localhost:3000
 Backend API at http://localhost:8000
 
+```
+Default user: admin 
+With password provided in the env settings above
+```
 ### 4. Local Development (Optional)
 
 ```bash
