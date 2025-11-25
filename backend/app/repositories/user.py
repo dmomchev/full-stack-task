@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import get_password_hash
 from app.models.rbac import User
+from app.utils.paginate import paginate
 
 
 class UserRepository:
@@ -21,10 +22,15 @@ class UserRepository:
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
-    async def get_all(self, skip: int = 0, limit: int = 100):
-        query = select(User).offset(skip).limit(limit)
-        result = await self.db.execute(query)
-        return result.scalars().all()
+    async def get_users_paginated(self, page, per_page, sort_by, filters):
+        return await paginate(
+            session=self.db,
+            model=User,
+            page=page,
+            per_page=per_page,
+            sort_by=sort_by,
+            filters=filters,
+        )
 
     async def create_user(self, username: str, password: str) -> User:
         hashed_pw = get_password_hash(password)

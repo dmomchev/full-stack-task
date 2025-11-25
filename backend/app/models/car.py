@@ -31,8 +31,8 @@ class Generation(Base):
     id = Column(Integer, primary_key=True)
     submodel_id = Column(Integer, ForeignKey("submodels.id", ondelete="CASCADE"))
     name = Column(String(100), nullable=False)
-    year_start = Column(Integer)
-    year_end = Column(Integer)
+    year_start = Column(Integer, nullable=False)
+    year_end = Column(Integer, nullable=False)
 
 
 class CarSpec(Base):
@@ -40,12 +40,13 @@ class CarSpec(Base):
 
     id = Column(Integer, primary_key=True)
     generation_id = Column(Integer, ForeignKey("generations.id", ondelete="CASCADE"))
-    engine = Column(String(100))
-    horsepower = Column(Integer)
-    torque = Column(Integer)
-    fuel_type = Column(String(50))
-    year = Column(Integer)
-    created_by = Column(Integer, ForeignKey("users.id"))
+    name = Column(String(100), nullable=False)
+    engine = Column(String(100), nullable=False)
+    horsepower = Column(Integer, nullable=False)
+    torque = Column(Integer, nullable=False)
+    fuel_type = Column(String(50), nullable=False)
+    year = Column(Integer, nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
 
 
 class UserCars(Base):

@@ -58,6 +58,10 @@ POSTGRES_SERVER=localhost
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 POSTGRES_DB=cardb
+SECRET_KEY=secret-key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+ADMIN_PASSWORD=admin123
 ```
 
 ### 3. Start services with Docker Compose
@@ -73,6 +77,7 @@ Full system access:
 - All CRUD operations on car data
 - Assign roles and permissions
 - Manage "My Cars" list
+- Permissions: `"users:crud", "cars:write", "cars:delete", "cars:read", "my_cars"`
 
 ### CarSpec
 Car specification manager:
@@ -80,12 +85,71 @@ Car specification manager:
 - Delete only items they created
 - Read all car information
 - Manage "My Cars" list
+- Permissions: `"cars:write", "cars:read"`
 
 ### User
 Read-only access:
 - Read all car information
 - Add/remove cars to "My Cars" list
+- Permissions: `"cars:read", "my_cars"`
 
 ## API Endpoints
----
-<!-- TODO -->
+Swagger documentation: http://127.0.0.1:8000/docs
+
+- Authentication
+  - `POST /login/access-token`
+
+- Users
+  - `POST /users`
+  - `GET /users`
+  - `GET /users/{user_id}`
+  - `PUT /users/{user_id}`
+  - `DELETE /users/{user_id}`
+  - `POST /users/{user_id}/role`
+  - `GET /users/{user_id}/roles`
+  - `DELETE /users/{user_id}/roles/{role_name}`
+
+- Roles & Permissions
+  - `GET /roles`
+  - `GET /roles/{role_id}/permissions`
+
+- Brands
+  - `POST /brands`
+  - `GET /brands`
+  - `GET /brands/{brand_id}`
+  - `PUT /brands/{brand_id}`
+  - `DELETE /brands/{brand_id}`
+
+- Models
+  - `POST /brands/{brand_id}/models`
+  - `GET /brands/{brand_id}/models`
+  - `GET /brands/{brand_id}/models/{model_id}`
+  - `PUT /brands/{brand_id}/models/{model_id}`
+  - `DELETE /brands/{brand_id}/models/{model_id}`
+
+- Submodels
+  - `POST /models/{model_id}/submodels`
+  - `GET /models/{model_id}/submodels`
+  - `GET /models/{model_id}/submodels/{submodel_id}`
+  - `PUT /models/{model_id}/submodels/{submodel_id}`
+  - `DELETE /models/{model_id}/submodels/{submodel_id}`
+
+- Generations
+  - `POST /submodels/{submodel_id}/generations`
+  - `GET /submodels/{submodel_id}/generations`
+  - `GET /submodels/{submodel_id}/generations/{generation_id}`
+  - `PUT /submodels/{submodel_id}/generations/{generation_id}`
+  - `DELETE /submodels/{submodel_id}/generations/{generation_id}`
+
+- Car Specifications
+  - `POST /generations/{generation_id}/specs`
+  - `GET /generations/{generation_id}/specs`
+  - `GET /specs/{spec_id}`
+  - `PUT /generations/{generation_id}/specs/{spec_id}`
+  - `DELETE /generations/{generation_id}/specs/{spec_id}`
+
+- My Cars
+  - `POST /my-cars/{car_spec_id}`
+  - `DELETE /my-cars/{car_spec_id}`
+  - `GET /my-cars`
+

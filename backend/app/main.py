@@ -1,14 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.controllers import login, user
+from app.controllers import login, user, role
 from app.controllers.car import car_routers
 from app.startup_bootstrap import lifespan
 
 
 app = FastAPI(
     title="Car Specification API",
-    description="Full-Stack Car Management System with Role-Based Access Control",
+    description="Car Management System",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -27,6 +27,7 @@ app.add_middleware(
 # Include routers
 app.include_router(login.router)
 app.include_router(user.router)
+app.include_router(role.router)
 for router in car_routers:
     app.include_router(router)
 

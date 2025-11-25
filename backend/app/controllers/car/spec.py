@@ -6,12 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.controllers.car.utils import serialize_paginated
 from app.core.deps import get_db, require_permissions
 from app.models.rbac import User
-from app.schemas.car import CarSpecCreate, CarSpecRead
+from app.schemas.car import CarSpecCreate, CarSpecRead, CarSpecUpdate
 from app.schemas.pagination import PaginatedResponse, PaginationParams
 from app.services.car import CarSpecService
 
 
-router = APIRouter(tags=["Car Specs"])
+router = APIRouter(tags=["Car Specifications"])
 
 
 def get_spec_service(db: AsyncSession = Depends(get_db)) -> CarSpecService:
@@ -29,15 +29,7 @@ async def create_car_spec(
     current_user: Annotated[User, Depends(require_permissions({"cars:write"}))],
     service: CarSpecService = Depends(get_spec_service),
 ):
-    payload = CarSpecCreate(
-        generation_id=generation_id,
-        engine=data.engine,
-        horsepower=data.horsepower,
-        torque=data.torque,
-        fuel_type=data.fuel_type,
-        year=data.year,
-    )
-    spec = await service.create(payload, current_user)
+    spec = await service.create(generation_id, data, current_user)
     return CarSpecRead.model_validate(spec)
 
 
@@ -69,5 +61,33 @@ async def get_car_spec(
     service: CarSpecService = Depends(get_spec_service),
 ):
     spec = await service.get(current_user, spec_id)
+    return CarSpecRead.model_validate(spec)
+
+
+@router.delete(
+    "/generations/{generation_id}/specs/{spec_id}",
+    status_code=status.HTTP_200_OK,
+)
+async def delete_car_spec(
+    generation_id: int,
+    spec_id: int,
+    current_user: Annotated[User, Depends(require_permissions({"cars:delete"}))],
+    service: CarSpecService = Depends(get_spec_service),
+):
+    return await service.delete(current_user, generation_id, spec_id)
+
+
+@router.put(
+    "/generations/{generation_id}/specs/{spec_id}",
+    response_model=CarSpecRead,
+)
+async def update_car_spec(
+    generation_id: int,
+    spec_id: int,
+    data: CarSpecUpdate,
+    current_user: Annotated[User, Depends(require_permissions({"cars:write"}))],
+    service: CarSpecService = Depends(get_spec_service),
+):
+    spec = await service.update(current_user, generation_id, spec_id, data)
     return CarSpecRead.model_validate(spec)
 

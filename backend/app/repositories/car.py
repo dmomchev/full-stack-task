@@ -47,6 +47,14 @@ class CarRepository:
         await self.db.execute(delete(Brand).where(Brand.id == brand_id))
         await self.db.commit()
 
+    async def update_brand(self, brand: Brand, **kwargs) -> Brand:
+        for key, value in kwargs.items():
+            setattr(brand, key, value)
+        self.db.add(brand)
+        await self.db.commit()
+        await self.db.refresh(brand)
+        return brand
+
     # ====================================================================
     # MODEL OPERATIONS
     # ====================================================================
@@ -79,6 +87,18 @@ class CarRepository:
             base_query=base_query,
         )
 
+    async def delete_model(self, model_id: int):
+        await self.db.execute(delete(Model).where(Model.id == model_id))
+        await self.db.commit()
+
+    async def update_model(self, model: Model, **kwargs) -> Model:
+        for key, value in kwargs.items():
+            setattr(model, key, value)
+        self.db.add(model)
+        await self.db.commit()
+        await self.db.refresh(model)
+        return model
+
     # ====================================================================
     # SUBMODEL OPERATIONS
     # ====================================================================
@@ -110,6 +130,18 @@ class CarRepository:
             filters,
             base_query,
         )
+
+    async def delete_submodel(self, submodel_id: int):
+        await self.db.execute(delete(Submodel).where(Submodel.id == submodel_id))
+        await self.db.commit()
+
+    async def update_submodel(self, submodel: Submodel, **kwargs) -> Submodel:
+        for key, value in kwargs.items():
+            setattr(submodel, key, value)
+        self.db.add(submodel)
+        await self.db.commit()
+        await self.db.refresh(submodel)
+        return submodel
 
     # ====================================================================
     # GENERATION OPERATIONS
@@ -152,6 +184,18 @@ class CarRepository:
             base_query,
         )
 
+    async def delete_generation(self, generation_id: int):
+        await self.db.execute(delete(Generation).where(Generation.id == generation_id))
+        await self.db.commit()
+
+    async def update_generation(self, generation: Generation, **kwargs) -> Generation:
+        for key, value in kwargs.items():
+            setattr(generation, key, value)
+        self.db.add(generation)
+        await self.db.commit()
+        await self.db.refresh(generation)
+        return generation
+
     # ====================================================================
     # CARSPEC OPERATIONS
     # ====================================================================
@@ -159,21 +203,23 @@ class CarRepository:
     async def create_car_spec(
         self,
         generation_id: int,
-        engine: Optional[str] = None,
-        horsepower: Optional[int] = None,
-        torque: Optional[int] = None,
-        fuel_type: Optional[str] = None,
-        year: Optional[int] = None,
-        created_by: Optional[int] = None
+        name: str,
+        engine: str,
+        horsepower: int,
+        torque: int,
+        fuel_type: str,
+        year: int,
+        created_by: int,
     ) -> CarSpec:
         spec = CarSpec(
             generation_id=generation_id,
+            name=name,
             engine=engine,
             horsepower=horsepower,
             torque=torque,
             fuel_type=fuel_type,
             year=year,
-            created_by=created_by
+            created_by=created_by,
         )
         self.db.add(spec)
         await self.db.commit()
@@ -200,6 +246,18 @@ class CarRepository:
     async def get_car_spec_by_id(self, spec_id: int) -> Optional[CarSpec]:
         result = await self.db.execute(select(CarSpec).where(CarSpec.id == spec_id))
         return result.scalar_one_or_none()
+
+    async def delete_car_spec(self, spec_id: int):
+        await self.db.execute(delete(CarSpec).where(CarSpec.id == spec_id))
+        await self.db.commit()
+
+    async def update_car_spec(self, spec: CarSpec, **kwargs) -> CarSpec:
+        for key, value in kwargs.items():
+            setattr(spec, key, value)
+        self.db.add(spec)
+        await self.db.commit()
+        await self.db.refresh(spec)
+        return spec
 
     # ====================================================================
     # USER CARS (JOIN TABLE)

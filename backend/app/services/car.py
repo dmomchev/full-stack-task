@@ -27,19 +27,28 @@ class BrandService:
         await self.repo.delete_brand(brand_id)
         return {"detail": "Brand deleted successfully"}
 
+    async def update(self, brand_id: int, data):
+        brand = await self.repo.get_brand_by_id(brand_id)
+        if not brand:
+            raise HTTPException(404, "Brand not found")
+        update_data = data.model_dump(exclude_unset=True)
+        if not update_data:
+            return brand
+        return await self.repo.update_brand(brand, **update_data)
+
 
 class ModelService:
     def __init__(self, db: AsyncSession):
         self.repo = CarRepository(db)
 
-    async def create(self, data):
+    async def create(self, brand_id: int, data):
         # Validate brand exists
-        brand = await self.repo.get_brand_by_id(data.brand_id)
+        brand = await self.repo.get_brand_by_id(brand_id)
         if not brand:
             raise HTTPException(404, "Brand not found")
 
         return await self.repo.create_model(
-            brand_id=data.brand_id,
+            brand_id=brand_id,
             name=data.name
         )
 
@@ -57,19 +66,41 @@ class ModelService:
             filters
         )
 
+    async def delete(self, brand_id: int, model_id: int):
+        model = await self.repo.get_model_by_id(model_id)
+        if not model or model.brand_id != brand_id:
+            raise HTTPException(404, "Model not found")
+        await self.repo.delete_model(model_id)
+        return {"detail": "Model deleted successfully"}
+
+    async def get(self, brand_id: int, model_id: int):
+        model = await self.repo.get_model_by_id(model_id)
+        if not model or model.brand_id != brand_id:
+            raise HTTPException(404, "Model not found")
+        return model
+
+    async def update(self, brand_id: int, model_id: int, data):
+        model = await self.repo.get_model_by_id(model_id)
+        if not model or model.brand_id != brand_id:
+            raise HTTPException(404, "Model not found")
+        update_data = data.model_dump(exclude_unset=True)
+        if not update_data:
+            return model
+        return await self.repo.update_model(model, **update_data)
+
 
 class SubmodelService:
     def __init__(self, db: AsyncSession):
         self.repo = CarRepository(db)
 
-    async def create(self, data):
+    async def create(self, model_id: int, data):
         # Ensure parent model exists
-        model = await self.repo.get_model_by_id(data.model_id)
+        model = await self.repo.get_model_by_id(model_id)
         if not model:
             raise HTTPException(404, "Model not found")
 
         return await self.repo.create_submodel(
-            model_id=data.model_id,
+            model_id=model_id,
             name=data.name
         )
 
@@ -87,19 +118,41 @@ class SubmodelService:
             filters
         )
 
+    async def delete(self, model_id: int, submodel_id: int):
+        submodel = await self.repo.get_submodel_by_id(submodel_id)
+        if not submodel or submodel.model_id != model_id:
+            raise HTTPException(404, "Submodel not found")
+        await self.repo.delete_submodel(submodel_id)
+        return {"detail": "Submodel deleted successfully"}
+
+    async def get(self, model_id: int, submodel_id: int):
+        submodel = await self.repo.get_submodel_by_id(submodel_id)
+        if not submodel or submodel.model_id != model_id:
+            raise HTTPException(404, "Submodel not found")
+        return submodel
+
+    async def update(self, model_id: int, submodel_id: int, data):
+        submodel = await self.repo.get_submodel_by_id(submodel_id)
+        if not submodel or submodel.model_id != model_id:
+            raise HTTPException(404, "Submodel not found")
+        update_data = data.model_dump(exclude_unset=True)
+        if not update_data:
+            return submodel
+        return await self.repo.update_submodel(submodel, **update_data)
+
 
 class GenerationService:
     def __init__(self, db: AsyncSession):
         self.repo = CarRepository(db)
 
-    async def create(self, data):
+    async def create(self, submodel_id: int, data):
         # Check submodel exists
-        submodel = await self.repo.get_submodel_by_id(data.submodel_id)
+        submodel = await self.repo.get_submodel_by_id(submodel_id)
         if not submodel:
             raise HTTPException(404, "Submodel not found")
 
         return await self.repo.create_generation(
-            submodel_id=data.submodel_id,
+            submodel_id=submodel_id,
             name=data.name,
             year_start=data.year_start,
             year_end=data.year_end
@@ -118,6 +171,28 @@ class GenerationService:
             filters
         )
 
+    async def delete(self, submodel_id: int, generation_id: int):
+        generation = await self.repo.get_generation_by_id(generation_id)
+        if not generation or generation.submodel_id != submodel_id:
+            raise HTTPException(404, "Generation not found")
+        await self.repo.delete_generation(generation_id)
+        return {"detail": "Generation deleted successfully"}
+
+    async def get(self, submodel_id: int, generation_id: int):
+        generation = await self.repo.get_generation_by_id(generation_id)
+        if not generation or generation.submodel_id != submodel_id:
+            raise HTTPException(404, "Generation not found")
+        return generation
+
+    async def update(self, submodel_id: int, generation_id: int, data):
+        generation = await self.repo.get_generation_by_id(generation_id)
+        if not generation or generation.submodel_id != submodel_id:
+            raise HTTPException(404, "Generation not found")
+        update_data = data.model_dump(exclude_unset=True)
+        if not update_data:
+            return generation
+        return await self.repo.update_generation(generation, **update_data)
+
 
 class CarSpecService:
     def __init__(self, db: AsyncSession):
@@ -128,15 +203,16 @@ class CarSpecService:
         if not has_permission(user, permission):
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Insufficient permissions")
 
-    async def create(self, data, user: User):
+    async def create(self, generation_id: int, data, user: User):
         self._ensure_permission(user, "cars:write")
         # Validate generation
-        generation = await self.repo.get_generation_by_id(data.generation_id)
+        generation = await self.repo.get_generation_by_id(generation_id)
         if not generation:
             raise HTTPException(404, "Generation not found")
 
         return await self.repo.create_car_spec(
-            generation_id=data.generation_id,
+            generation_id=generation_id,
+            name=data.name,
             engine=data.engine,
             horsepower=data.horsepower,
             torque=data.torque,
@@ -165,6 +241,24 @@ class CarSpecService:
         if not car:
             raise HTTPException(404, "Car spec not found")
         return car
+
+    async def delete(self, user: User, generation_id: int, spec_id: int):
+        self._ensure_permission(user, "cars:delete")
+        spec = await self.repo.get_car_spec_by_id(spec_id)
+        if not spec or spec.generation_id != generation_id:
+            raise HTTPException(404, "Car spec not found")
+        await self.repo.delete_car_spec(spec_id)
+        return {"detail": "Car spec deleted successfully"}
+
+    async def update(self, user: User, generation_id: int, spec_id: int, data):
+        self._ensure_permission(user, "cars:write")
+        spec = await self.repo.get_car_spec_by_id(spec_id)
+        if not spec or spec.generation_id != generation_id:
+            raise HTTPException(404, "Car spec not found")
+        update_data = data.model_dump(exclude_unset=True)
+        if not update_data:
+            return spec
+        return await self.repo.update_car_spec(spec, **update_data)
 
 
 class UserCarService:

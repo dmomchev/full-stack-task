@@ -1,8 +1,8 @@
 """Init tables
 
-Revision ID: 485f89a26d91
+Revision ID: 3ca8b48d3379
 Revises: 
-Create Date: 2025-11-24 15:26:37.183561
+Create Date: 2025-11-25 00:30:35.982450
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '485f89a26d91'
+revision: str = '3ca8b48d3379'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -83,20 +83,21 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('submodel_id', sa.Integer(), nullable=True),
     sa.Column('name', sa.String(length=100), nullable=False),
-    sa.Column('year_start', sa.Integer(), nullable=True),
-    sa.Column('year_end', sa.Integer(), nullable=True),
+    sa.Column('year_start', sa.Integer(), nullable=False),
+    sa.Column('year_end', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['submodel_id'], ['submodels.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('car_specs',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('generation_id', sa.Integer(), nullable=True),
-    sa.Column('engine', sa.String(length=100), nullable=True),
-    sa.Column('horsepower', sa.Integer(), nullable=True),
-    sa.Column('torque', sa.Integer(), nullable=True),
-    sa.Column('fuel_type', sa.String(length=50), nullable=True),
-    sa.Column('year', sa.Integer(), nullable=True),
-    sa.Column('created_by', sa.Integer(), nullable=True),
+    sa.Column('name', sa.String(length=100), nullable=False),
+    sa.Column('engine', sa.String(length=100), nullable=False),
+    sa.Column('horsepower', sa.Integer(), nullable=False),
+    sa.Column('torque', sa.Integer(), nullable=False),
+    sa.Column('fuel_type', sa.String(length=50), nullable=False),
+    sa.Column('year', sa.Integer(), nullable=False),
+    sa.Column('created_by', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
     sa.ForeignKeyConstraint(['generation_id'], ['generations.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')

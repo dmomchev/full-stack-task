@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.controllers.car.utils import serialize_paginated
 from app.core.deps import get_db, require_permissions
-from app.schemas.car import BrandCreate, BrandRead
+from app.schemas.car import BrandCreate, BrandRead, BrandUpdate
 from app.schemas.pagination import PaginatedResponse, PaginationParams
 from app.services.car import BrandService
 
@@ -42,6 +42,19 @@ async def list_brands(
     return serialize_paginated(result, BrandRead)
 
 
+@router.get(
+    "/{brand_id}",
+    response_model=BrandRead,
+    dependencies=[Depends(require_permissions({"cars:read"}))],
+)
+async def get_brand(
+    brand_id: int,
+    service: BrandService = Depends(get_brand_service),
+):
+    brand = await service.get(brand_id)
+    return BrandRead.model_validate(brand)
+
+
 @router.delete(
     "/{brand_id}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -53,4 +66,18 @@ async def delete_brand(
 ):
     await service.delete(brand_id)
     return None
+
+
+@router.put(
+    "/{brand_id}",
+    response_model=BrandRead,
+    dependencies=[Depends(require_permissions({"cars:write"}))],
+)
+async def update_brand(
+    brand_id: int,
+    data: BrandUpdate,
+    service: BrandService = Depends(get_brand_service),
+):
+    brand = await service.update(brand_id, data)
+    return BrandRead.model_validate(brand)
 

@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.deps import get_db, require_permissions
 from app.services.user import UserService
 from app.schemas.user import UserCreate, UserUpdate, UserResponse
+from app.schemas.role import RoleResponse
+from app.schemas.pagination import PaginatedResponse, PaginationParams
 
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -29,15 +31,19 @@ async def create_user(data: UserCreate, service: UserService = Depends(get_user_
 
 @router.get(
     "",
-    response_model=list[UserResponse],
+    response_model=PaginatedResponse[UserResponse],
     dependencies=[Depends(require_permissions({"users:crud"}))],
 )
 async def list_users(
-    skip: int = 0,
-    limit: int = 100,
+    params: PaginationParams = Depends(),
     service: UserService = Depends(get_user_service),
 ):
-    return await service.get_users(skip, limit)
+    return await service.get_users(
+        page=params.page,
+        per_page=params.per_page,
+        sort_by=params.sort_by,
+        filters=params.filters,
+    )
 
 
 @router.get(
@@ -100,3 +106,35 @@ async def assign_role_to_user(
         raise HTTPException(status_code=status_code, detail=detail)
 
     return {"detail": "Role assigned"}
+
+
+@router.get(
+    "/{user_id}/roles",
+    response_model=list[RoleResponse],
+    dependencies=[Depends(require_permissions({"users:crud"}))],
+)
+async def get_user_roles(user_id: int, service: UserService = Depends(get_user_service)):
+    try:
+        return await service.get_user_roles(user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.delete(
+    "/{user_id}/roles/{role_name}",
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(require_permissions({"users:crud"}))],
+)
+async def remove_role_from_user(
+    user_id: int,
+    role_name: str,
+    service: UserService = Depends(get_user_service),
+):
+    try:
+        await service.remove_role(user_id, role_name)
+    except ValueError as e:
+        detail = str(e)
+        status_code = 404 if "not found" in detail.lower() else 400
+        raise HTTPException(status_code=status_code, detail=detail)
+
+    return {"detail": "Role removed"}

@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositories.user import UserRepository
 from app.repositories.role import RoleRepository
-from app.models.rbac import User
+from app.models.rbac import User, Role
 from app.schemas.user import UserCreate, UserUpdate
 from app.core.security import verify_password
 
@@ -38,8 +38,8 @@ class UserService:
     async def get_user(self, user_id: int) -> Optional[User]:
         return await self.repo.get_by_id(user_id)
 
-    async def get_users(self, skip: int =0, limit: int=100) -> List[User]:
-        return await self.repo.get_all(skip, limit)
+    async def get_users(self, page: int, per_page: int, sort_by: Optional[str], filters: Optional[str]):
+        return await self.repo.get_users_paginated(page, per_page, sort_by, filters)
 
     async def update_user(self, user_id: int, data: UserUpdate) -> Optional[User]:
         user = await self.repo.get_by_id(user_id)
@@ -74,3 +74,24 @@ class UserService:
         await self.roles.assign_user_to_role(user_id, role.id)
         # Refresh user to include updated roles relationship
         return await self.repo.get_by_id(user_id)
+
+    async def remove_role(self, user_id: int, role_name: str) -> User:
+        user = await self.repo.get_by_id(user_id)
+        if not user:
+            raise ValueError("User not found")
+
+        role = await self.roles.get_by_name(role_name)
+        if not role:
+            raise ValueError("Role not found")
+
+        if not await self.roles.user_has_role(user_id, role.id):
+            raise ValueError("User does not have this role")
+
+        await self.roles.remove_user_from_role(user_id, role.id)
+        return await self.repo.get_by_id(user_id)
+
+    async def get_user_roles(self, user_id: int) -> List[Role]:
+        user = await self.repo.get_by_id(user_id)
+        if not user:
+            raise ValueError("User not found")
+        return user.roles
