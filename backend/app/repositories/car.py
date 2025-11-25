@@ -18,8 +18,8 @@ class CarRepository:
     # BRAND OPERATIONS
     # ====================================================================
 
-    async def create_brand(self, name: str) -> Brand:
-        brand = Brand(name=name)
+    async def create_brand(self, name: str, created_by: int) -> Brand:
+        brand = Brand(name=name, created_by=created_by)
         self.db.add(brand)
         await self.db.commit()
         await self.db.refresh(brand)
@@ -59,8 +59,8 @@ class CarRepository:
     # MODEL OPERATIONS
     # ====================================================================
 
-    async def create_model(self, brand_id: int, name: str) -> Model:
-        model = Model(brand_id=brand_id, name=name)
+    async def create_model(self, brand_id: int, name: str, created_by: int) -> Model:
+        model = Model(brand_id=brand_id, name=name, created_by=created_by)
         self.db.add(model)
         await self.db.commit()
         await self.db.refresh(model)
@@ -103,8 +103,8 @@ class CarRepository:
     # SUBMODEL OPERATIONS
     # ====================================================================
 
-    async def create_submodel(self, model_id: int, name: str) -> Submodel:
-        submodel = Submodel(model_id=model_id, name=name)
+    async def create_submodel(self, model_id: int, name: str, created_by: int) -> Submodel:
+        submodel = Submodel(model_id=model_id, name=name, created_by=created_by)
         self.db.add(submodel)
         await self.db.commit()
         await self.db.refresh(submodel)
@@ -150,13 +150,15 @@ class CarRepository:
     async def create_generation(
         self, submodel_id: int, name: str,
         year_start: Optional[int] = None,
-        year_end: Optional[int] = None
+        year_end: Optional[int] = None,
+        created_by: int = None
     ) -> Generation:
         generation = Generation(
             submodel_id=submodel_id,
             name=name,
             year_start=year_start,
-            year_end=year_end
+            year_end=year_end,
+            created_by=created_by
         )
         self.db.add(generation)
         await self.db.commit()

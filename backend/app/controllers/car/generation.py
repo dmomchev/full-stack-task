@@ -1,8 +1,11 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.controllers.car.utils import serialize_paginated
 from app.core.deps import get_db, require_permissions
+from app.models.rbac import User
 from app.schemas.car import GenerationCreate, GenerationRead, GenerationUpdate
 from app.schemas.pagination import PaginatedResponse, PaginationParams
 from app.services.car import GenerationService
@@ -19,14 +22,14 @@ def get_generation_service(db: AsyncSession = Depends(get_db)) -> GenerationServ
     "",
     response_model=GenerationRead,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_permissions({"cars:write"}))],
 )
 async def create_generation(
     submodel_id: int,
     data: GenerationCreate,
+    current_user: Annotated[User, Depends(require_permissions({"cars:write"}))],
     service: GenerationService = Depends(get_generation_service),
 ):
-    generation = await service.create(submodel_id, data)
+    generation = await service.create(submodel_id, data, current_user)
     return GenerationRead.model_validate(generation)
 
 
@@ -67,27 +70,27 @@ async def get_generation(
 @router.delete(
     "/{generation_id}",
     status_code=status.HTTP_200_OK,
-    dependencies=[Depends(require_permissions({"cars:delete"}))],
 )
 async def delete_generation(
     submodel_id: int,
     generation_id: int,
+    current_user: Annotated[User, Depends(require_permissions({"cars:delete"}, {"cars:delete_own"}))],
     service: GenerationService = Depends(get_generation_service),
 ):
-    return await service.delete(submodel_id, generation_id)
+    return await service.delete(current_user, submodel_id, generation_id)
 
 
 @router.put(
     "/{generation_id}",
     response_model=GenerationRead,
-    dependencies=[Depends(require_permissions({"cars:write"}))],
 )
 async def update_generation(
     submodel_id: int,
     generation_id: int,
     data: GenerationUpdate,
+    current_user: Annotated[User, Depends(require_permissions({"cars:write"}, {"cars:update_own"}))],
     service: GenerationService = Depends(get_generation_service),
 ):
-    generation = await service.update(submodel_id, generation_id, data)
+    generation = await service.update(current_user, submodel_id, generation_id, data)
     return GenerationRead.model_validate(generation)
 

@@ -71,7 +71,7 @@ async def get_car_spec(
 async def delete_car_spec(
     generation_id: int,
     spec_id: int,
-    current_user: Annotated[User, Depends(require_permissions({"cars:delete"}))],
+    current_user: Annotated[User, Depends(require_permissions({"cars:delete"}, {"cars:delete_own"}))],
     service: CarSpecService = Depends(get_spec_service),
 ):
     return await service.delete(current_user, generation_id, spec_id)
@@ -85,7 +85,7 @@ async def update_car_spec(
     generation_id: int,
     spec_id: int,
     data: CarSpecUpdate,
-    current_user: Annotated[User, Depends(require_permissions({"cars:write"}))],
+    current_user: Annotated[User, Depends(require_permissions({"cars:write"}, {"cars:update_own"}))],
     service: CarSpecService = Depends(get_spec_service),
 ):
     spec = await service.update(current_user, generation_id, spec_id, data)

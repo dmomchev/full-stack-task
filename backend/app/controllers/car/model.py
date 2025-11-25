@@ -1,8 +1,11 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.controllers.car.utils import serialize_paginated
 from app.core.deps import get_db, require_permissions
+from app.models.rbac import User
 from app.schemas.car import ModelCreate, ModelRead, ModelUpdate
 from app.schemas.pagination import PaginatedResponse, PaginationParams
 from app.services.car import ModelService
@@ -19,14 +22,14 @@ def get_model_service(db: AsyncSession = Depends(get_db)) -> ModelService:
     "",
     response_model=ModelRead,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_permissions({"cars:write"}))],
 )
 async def create_model(
     brand_id: int,
     data: ModelCreate,
+    current_user: Annotated[User, Depends(require_permissions({"cars:write"}))],
     service: ModelService = Depends(get_model_service),
 ):
-    model = await service.create(brand_id, data)
+    model = await service.create(brand_id, data, current_user)
     return ModelRead.model_validate(model)
 
 
@@ -61,27 +64,27 @@ async def get_model(
 @router.delete(
     "/{model_id}",
     status_code=status.HTTP_200_OK,
-    dependencies=[Depends(require_permissions({"cars:delete"}))],
 )
 async def delete_model(
     brand_id: int,
     model_id: int,
+    current_user: Annotated[User, Depends(require_permissions({"cars:delete"}, {"cars:delete_own"}))],
     service: ModelService = Depends(get_model_service),
 ):
-    return await service.delete(brand_id, model_id)
+    return await service.delete(current_user, brand_id, model_id)
 
 
 @router.put(
     "/{model_id}",
     response_model=ModelRead,
-    dependencies=[Depends(require_permissions({"cars:write"}))],
 )
 async def update_model(
     brand_id: int,
     model_id: int,
     data: ModelUpdate,
+    current_user: Annotated[User, Depends(require_permissions({"cars:write"}, {"cars:update_own"}))],
     service: ModelService = Depends(get_model_service),
 ):
-    model = await service.update(brand_id, model_id, data)
+    model = await service.update(current_user, brand_id, model_id, data)
     return ModelRead.model_validate(model)
 

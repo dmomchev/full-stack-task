@@ -77,7 +77,9 @@ async def get_current_user(session: SessionDep, token: TokenDep) -> User:
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
-def require_permissions(required: Set[str]):
+def require_permissions(*alternatives: Set[str]):
+    """Require at least one set of permissions to pass (OR logic).
+    """
     def validator(user: CurrentUser):
         if not user.roles:
             raise HTTPException(403, "User role not assigned")
@@ -87,12 +89,15 @@ def require_permissions(required: Set[str]):
             if role.permissions:
                 user_perm_names.update(p.name for p in role.permissions)
 
-        if not required.issubset(user_perm_names):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="No permissions"
-            )
-        return user
+        # Check if ANY of the alternatives is satisfied
+        for required in alternatives:
+            if required.issubset(user_perm_names):
+                return user
+
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permissions"
+        )
     return validator
 
 

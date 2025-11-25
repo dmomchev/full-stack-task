@@ -1,8 +1,11 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.controllers.car.utils import serialize_paginated
 from app.core.deps import get_db, require_permissions
+from app.models.rbac import User
 from app.schemas.car import SubmodelCreate, SubmodelRead, SubmodelUpdate
 from app.schemas.pagination import PaginatedResponse, PaginationParams
 from app.services.car import SubmodelService
@@ -19,14 +22,14 @@ def get_submodel_service(db: AsyncSession = Depends(get_db)) -> SubmodelService:
     "",
     response_model=SubmodelRead,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_permissions({"cars:write"}))],
 )
 async def create_submodel(
     model_id: int,
     data: SubmodelCreate,
+    current_user: Annotated[User, Depends(require_permissions({"cars:write"}))],
     service: SubmodelService = Depends(get_submodel_service),
 ):
-    submodel = await service.create(model_id, data)
+    submodel = await service.create(model_id, data, current_user)
     return SubmodelRead.model_validate(submodel)
 
 
@@ -61,27 +64,27 @@ async def get_submodel(
 @router.delete(
     "/{submodel_id}",
     status_code=status.HTTP_200_OK,
-    dependencies=[Depends(require_permissions({"cars:delete"}))],
 )
 async def delete_submodel(
     model_id: int,
     submodel_id: int,
+    current_user: Annotated[User, Depends(require_permissions({"cars:delete"}, {"cars:delete_own"}))],
     service: SubmodelService = Depends(get_submodel_service),
 ):
-    return await service.delete(model_id, submodel_id)
+    return await service.delete(current_user, model_id, submodel_id)
 
 
 @router.put(
     "/{submodel_id}",
     response_model=SubmodelRead,
-    dependencies=[Depends(require_permissions({"cars:write"}))],
 )
 async def update_submodel(
     model_id: int,
     submodel_id: int,
     data: SubmodelUpdate,
+    current_user: Annotated[User, Depends(require_permissions({"cars:write"}, {"cars:update_own"}))],
     service: SubmodelService = Depends(get_submodel_service),
 ):
-    submodel = await service.update(model_id, submodel_id, data)
+    submodel = await service.update(current_user, model_id, submodel_id, data)
     return SubmodelRead.model_validate(submodel)
 

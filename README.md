@@ -85,7 +85,7 @@ Car specification manager:
 - Delete only items they created
 - Read all car information
 - Manage "My Cars" list
-- Permissions: `"cars:write", "cars:read"`
+- Permissions: `"cars:write", "cars:update_own", "cars:delete_own", "cars:read"`
 
 ### User
 Read-only access:

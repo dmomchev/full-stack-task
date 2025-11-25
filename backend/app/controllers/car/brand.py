@@ -1,8 +1,11 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.controllers.car.utils import serialize_paginated
 from app.core.deps import get_db, require_permissions
+from app.models.rbac import User
 from app.schemas.car import BrandCreate, BrandRead, BrandUpdate
 from app.schemas.pagination import PaginatedResponse, PaginationParams
 from app.services.car import BrandService
@@ -19,13 +22,13 @@ def get_brand_service(db: AsyncSession = Depends(get_db)) -> BrandService:
     "",
     response_model=BrandRead,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_permissions({"cars:write"}))],
 )
 async def create_brand(
     data: BrandCreate,
+    current_user: Annotated[User, Depends(require_permissions({"cars:write"}))],
     service: BrandService = Depends(get_brand_service),
 ):
-    brand = await service.create(data)
+    brand = await service.create(data, current_user)
     return BrandRead.model_validate(brand)
 
 
@@ -57,27 +60,26 @@ async def get_brand(
 
 @router.delete(
     "/{brand_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(require_permissions({"cars:delete"}))],
+    status_code=status.HTTP_200_OK,
 )
 async def delete_brand(
     brand_id: int,
+    current_user: Annotated[User, Depends(require_permissions({"cars:delete"}, {"cars:delete_own"}))],
     service: BrandService = Depends(get_brand_service),
 ):
-    await service.delete(brand_id)
-    return None
+    return await service.delete(current_user, brand_id)
 
 
 @router.put(
     "/{brand_id}",
     response_model=BrandRead,
-    dependencies=[Depends(require_permissions({"cars:write"}))],
 )
 async def update_brand(
     brand_id: int,
     data: BrandUpdate,
+    current_user: Annotated[User, Depends(require_permissions({"cars:write"}, {"cars:update_own"}))],
     service: BrandService = Depends(get_brand_service),
 ):
-    brand = await service.update(brand_id, data)
+    brand = await service.update(current_user, brand_id, data)
     return BrandRead.model_validate(brand)
 

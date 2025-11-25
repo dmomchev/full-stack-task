@@ -19,14 +19,16 @@ async def lifespan(app: FastAPI):
 DEFAULT_PERMISSIONS = [
     ("users:crud", "Manage users"),
     ("cars:write", "Create and update car data"),
-    ("cars:delete", "Delete car data"),
+    ("cars:update_own", "Update own car data"),
+    ("cars:delete", "Delete any car data"),
+    ("cars:delete_own", "Delete own car data"),
     ("cars:read", "Read car data"),
     ("my_cars", "Manage personal garage"),
 ]
 
 ROLE_MATRIX = {
     "Admin": {"users:crud", "cars:write", "cars:delete", "cars:read", "my_cars"},
-    "CarSpec": {"cars:write", "cars:read"},
+    "CarSpec": {"cars:write", "cars:update_own", "cars:delete_own", "cars:read"},
     "User": {"cars:read", "my_cars"},
 }
 

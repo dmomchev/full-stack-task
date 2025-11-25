@@ -91,6 +91,7 @@ class CarSpecUpdate(BaseModel):
 # READ Schemas
 class BrandRead(BrandBase):
     id: int
+    created_by: int
 
     class Config:
         from_attributes = True
@@ -99,6 +100,7 @@ class BrandRead(BrandBase):
 class ModelRead(ModelBase):
     id: int
     brand_id: int
+    created_by: int
 
     class Config:
         from_attributes = True
@@ -107,6 +109,7 @@ class ModelRead(ModelBase):
 class SubmodelRead(SubmodelBase):
     id: int
     model_id: int
+    created_by: int
 
     class Config:
         from_attributes = True
@@ -115,6 +118,7 @@ class SubmodelRead(SubmodelBase):
 class GenerationRead(GenerationBase):
     id: int
     submodel_id: int
+    created_by: int
 
     class Config:
         from_attributes = True

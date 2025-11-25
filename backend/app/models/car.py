@@ -7,6 +7,7 @@ class Brand(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(100), unique=True, nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
 
 
 class Model(Base):
@@ -15,6 +16,7 @@ class Model(Base):
     id = Column(Integer, primary_key=True)
     brand_id = Column(Integer, ForeignKey("brands.id", ondelete="CASCADE"))
     name = Column(String(100), nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
 
 
 class Submodel(Base):
@@ -23,6 +25,7 @@ class Submodel(Base):
     id = Column(Integer, primary_key=True)
     model_id = Column(Integer, ForeignKey("models.id", ondelete="CASCADE"))
     name = Column(String(100), nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
 
 
 class Generation(Base):
@@ -33,6 +36,7 @@ class Generation(Base):
     name = Column(String(100), nullable=False)
     year_start = Column(Integer, nullable=False)
     year_end = Column(Integer, nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
 
 
 class CarSpec(Base):
